@@ -1,8 +1,102 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useForm } from "react-hook-form";
+
+export const COINGECKO_MAP: Record<string, string> = {
+  BTCUSD: "bitcoin",
+  ETHUSD: "ethereum",
+  SOLUSD: "solana",
+  BNBUSD: "binancecoin",
+  XRPUSD: "ripple",
+  ADAUSD: "cardano",
+  DOGEUSD: "dogecoin",
+  AVAXUSD: "avalanche-2",
+  TRXUSD: "tron",
+  LINKUSD: "chainlink",
+  DOTUSD: "polkadot",
+  MATICUSD: "matic-network",
+  LTCUSD: "litecoin",
+  BCHUSD: "bitcoin-cash",
+  UNIUSD: "uniswap",
+  ATOMUSD: "cosmos",
+  XLMUSD: "stellar",
+  XMRUSD: "monero",
+  ETCUSD: "ethereum-classic",
+  HBARUSD: "hedera-hashgraph",
+  FILUSD: "filecoin",
+  VETUSD: "vechain",
+  AAVEUSD: "aave",
+  ALGOUSD: "algorand",
+  FTMUSD: "fantom",
+  SANDUSD: "the-sandbox",
+  MANAUSD: "decentraland",
+  EGLDUSD: "multiversx",
+  HNTUSD: "helium",
+  NEARUSD: "near",
+  FLOWUSD: "flow",
+  CHZUSD: "chiliz",
+  THETAUSD: "theta-token",
+  EOSUSD: "eos",
+  RUNEUSD: "thorchain",
+  AXSUSD: "axie-infinity",
+  CAKEUSD: "pancakeswap-token",
+  ZECUSD: "zcash",
+  MIOTAUSD: "iota",
+  KSMUSD: "kusama",
+  CELUSD: "celsius-degree-token",
+  GRTUSD: "the-graph",
+  MKRUSD: "maker",
+  CRVUSD: "curve-dao-token",
+  SNXUSD: "synthetix-network-token",
+  LRCUSD: "loopring",
+  ENJUSD: "enjincoin",
+  AMPUSD: "amp-token",
+  DASHUSD: "dash",
+  BTGUSD: "bitcoin-gold",
+  NEOUSD: "neo",
+  ZILUSD: "zilliqa",
+  QTUMUSD: "qtum",
+  ARUSD: "arweave",
+  KAVAUSD: "kava",
+  OKBUSD: "okb",
+  CROUSD: "crypto-com-chain",
+  XECUSD: "ecash",
+  COMPUSD: "compound-governance-token",
+  WAVESUSD: "waves",
+  CELOUSD: "celo",
+  LPTUSD: "livepeer",
+  IMXUSD: "immutable-x",
+  STXUSD: "blockstack",
+  OPUSD: "optimism",
+  ARBUSD: "arbitrum",
+  GMXUSD: "gmx",
+  INJUSD: "injective-protocol",
+  APEUSD: "apecoin",
+  DYDXUSD: "dydx",
+  LDOUSD: "lido-dao",
+  RPLUSD: "rocket-pool",
+  TUSDUSD: "true-usd",
+  USDCUSD: "usd-coin",
+  USDTUSD: "tether",
+  DAIUSD: "dai",
+  FRAXUSD: "frax",
+  BUSDUSD: "binance-usd",
+  PYUSDUSD: "paypal-usd",
+  WBTCUSD: "wrapped-bitcoin",
+  WETHUSD: "weth",
+  SUIUSD: "sui",
+  APTUSD: "aptos",
+  BONKUSD: "bonk",
+  JUPUSD: "jupiter-exchange-solana",
+  PEPEUSD: "pepe",
+  SHIBUSD: "shiba-inu",
+  FLOKIUSD: "floki",
+  SEIUSD: "sei-network",
+  GALAUSD: "gala",
+  RENDERUSD: "render-token",
+  ONDOUSD: "ondo-finance",
+  BEAMUSD: "beam",
+};
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,15 +109,10 @@ export const useHoldings = () => {
   const [expandedSymbol, setExpandedSymbol] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const { register, handleSubmit, reset } = useForm();
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [assetType, setAssetType] = useState<"stock" | "crypto">("stock");
-
-  // ---------------------------
-  // Dólar MEP desde dolarapi.com
-  // ---------------------------
   const [dolarMEP, setDolarMEP] = useState<number | null>(null);
   const [dolarMEPLoading, setDolarMEPLoading] = useState<boolean>(true);
 
@@ -31,10 +120,7 @@ export const useHoldings = () => {
     setDolarMEPLoading(true);
     try {
       const res = await fetch("https://dolarapi.com/v1/dolares/bolsa");
-
-
       if (!res.ok) {
-        console.warn("⚠️ dolarapi no respondió OK:", res.status);
         if (attempt < 2) return fetchDolarMEP(attempt + 1);
         setDolarMEP(null);
         setDolarMEPLoading(false);
@@ -43,7 +129,6 @@ export const useHoldings = () => {
 
       const text = await res.text();
       if (!text) {
-        console.warn("⚠️ dolarapi devolvió respuesta vacía");
         if (attempt < 2) return fetchDolarMEP(attempt + 1);
         setDolarMEP(null);
         setDolarMEPLoading(false);
@@ -53,8 +138,7 @@ export const useHoldings = () => {
       let data: any;
       try {
         data = JSON.parse(text);
-      } catch (e) {
-        console.warn("⚠️ parse JSON fallo, retry…", e);
+      } catch {
         if (attempt < 2) return fetchDolarMEP(attempt + 1);
         setDolarMEP(null);
         setDolarMEPLoading(false);
@@ -77,9 +161,7 @@ export const useHoldings = () => {
       );
 
       const numeric = found ? Number(found) : null;
-
       if (!numeric || Number.isNaN(numeric)) {
-        console.warn("⚠️ No se pudo extraer valor numérico del MEP:", found);
         setDolarMEP(null);
         setDolarMEPLoading(false);
         return;
@@ -87,27 +169,36 @@ export const useHoldings = () => {
 
       setDolarMEP(numeric);
       setDolarMEPLoading(false);
-    } catch (err) {
-      console.error("❌ Error obteniendo dólar MEP:", err);
+    } catch {
       if (attempt < 2) return fetchDolarMEP(attempt + 1);
       setDolarMEP(null);
       setDolarMEPLoading(false);
     }
   };
 
-  // ---------------------------
-  // Helper: obtener precio actual
-  // ---------------------------
   const fetchCurrentPrice = async (symbol: string) => {
     try {
       if (!symbol) return null;
+
+      const upper = symbol.toUpperCase();
+      const isCrypto = upper.endsWith("USD");
+
+      if (isCrypto) {
+        const id = COINGECKO_MAP[upper];
+        if (!id) return null;
+
+        const res = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`
+        );
+        const data = await res.json();
+        return data[id]?.usd ?? null;
+      }
+
       const res = await fetch(
         `https://api.twelvedata.com/price?symbol=${encodeURIComponent(
           symbol
         )}&apikey=${process.env.NEXT_PUBLIC_TWELVEDATA_API_KEY}`
       );
-      if (!res.ok) return null;
-
       const data = await res.json();
       return data?.price ? parseFloat(data.price) : null;
     } catch {
@@ -115,15 +206,22 @@ export const useHoldings = () => {
     }
   };
 
-  // ---------------------------
-  // fetchHoldings
-  // ---------------------------
   const fetchHoldings = async () => {
     setLoading(true);
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setHoldings([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("holdings")
         .select("*")
+        .eq("user_id", user.id)
         .order("id", { ascending: false });
 
       if (error) {
@@ -135,9 +233,7 @@ export const useHoldings = () => {
       const updated = await Promise.all(
         (data || []).map(async (h: any) => {
           const precio_actual = await fetchCurrentPrice(h.activo);
-          const total_invertido =
-            Number(h.precio_compra || 0) * Number(h.cantidad || 0);
-
+          const total_invertido = Number(h.total_invertido || 0);
           const monto_actual = precio_actual
             ? precio_actual * Number(h.cantidad || 0)
             : 0;
@@ -164,21 +260,23 @@ export const useHoldings = () => {
     }
   };
 
-  // ---------------------------
-  // fetchTransactions
-  // ---------------------------
   const fetchTransactions = async () => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setTransactions([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
+        .eq("user_id", user.id)
         .order("fecha", { ascending: false });
 
-      if (error) {
-        setTransactions([]);
-      } else {
-        setTransactions(data || []);
-      }
+      if (!error) setTransactions(data || []);
     } catch {
       setTransactions([]);
     }
@@ -190,11 +288,7 @@ export const useHoldings = () => {
     fetchDolarMEP();
   }, []);
 
-  // ---------------------------
-  // Expandir historial
-  // ---------------------------
   const handleExpand = async (symbol: string | null) => {
-
     if (expandedSymbol === symbol) {
       setExpandedSymbol(null);
       setTransactions([]);
@@ -212,15 +306,33 @@ export const useHoldings = () => {
     setTransactions(data || []);
   };
 
-  // ---------------------------
-  // Búsqueda
-  // ---------------------------
   const handleSearchChange = async (value: string) => {
     setSearchTerm(value);
 
     if (!value || value.trim().length < 2) {
       setSuggestions([]);
       return;
+    }
+
+    if (assetType === "crypto") {
+      try {
+        const res = await fetch(
+          `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(
+            value
+          )}`
+        );
+        const data = await res.json();
+        const cryptos = data.coins.slice(0, 10).map((c: any) => ({
+          symbol: c.symbol.toUpperCase() + "USD",
+          name: c.name,
+          exchange: "Crypto",
+        }));
+        setSuggestions(cryptos);
+        return;
+      } catch {
+        setSuggestions([]);
+        return;
+      }
     }
 
     try {
@@ -254,16 +366,19 @@ export const useHoldings = () => {
     }
   };
 
-  const handleSuggestionClick = (symbol: string) => {
-    setSearchTerm(symbol);
-    setSuggestions([]);
-  };
-
-  // ---------------------------
-  // onSubmit
-  // ---------------------------
   const onSubmit = async (formData: any) => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("Debes iniciar sesión para agregar transacciones.");
+        return;
+      }
+
+      const userId = user.id;
+
       const activoValue = (searchTerm || "").trim();
       if (!activoValue) {
         alert("Selecciona un activo.");
@@ -275,13 +390,17 @@ export const useHoldings = () => {
       const fecha = formData.fecha;
       const importe = cantidad * precio_compra;
 
+      formData.asset_type = assetType;
+
       const { data: existingHolding } = await supabase
         .from("holdings")
         .select("*")
+        .eq("user_id", userId)
         .eq("activo", activoValue)
         .maybeSingle();
 
       let holdingId = null;
+
       const precio_actual = await fetchCurrentPrice(activoValue);
 
       if (existingHolding) {
@@ -291,8 +410,11 @@ export const useHoldings = () => {
           Number(existingHolding.cantidad || 0) + cantidad;
         const nuevoTotalInvertido =
           Number(existingHolding.total_invertido || 0) + importe;
+
         const nuevoPPC =
-          nuevaCantidad > 0 ? nuevoTotalInvertido / nuevaCantidad : precio_compra;
+          nuevaCantidad > 0
+            ? nuevoTotalInvertido / nuevaCantidad
+            : precio_compra;
 
         await supabase
           .from("holdings")
@@ -301,32 +423,41 @@ export const useHoldings = () => {
             total_invertido: nuevoTotalInvertido,
             precio_compra: nuevoPPC,
             precio_actual,
-            asset_type: assetType,
+            asset_type: formData.asset_type,
           })
-          .eq("id", holdingId);
+          .eq("id", holdingId)
+          .eq("user_id", userId);
       } else {
-        const insertObj: any = {
+        const newHoldingObj: any = {
+          user_id: userId,
           activo: activoValue,
           cantidad,
           precio_compra,
           total_invertido: importe,
           precio_actual,
-          asset_type: assetType,
+          asset_type: formData.asset_type,
         };
 
-        if (fecha) insertObj.fecha = fecha;
+        if (fecha) newHoldingObj.fecha = fecha;
 
-        const { data: newHolding } = await supabase
-          .from("holdings")
-          .insert([insertObj])
-          .select()
-          .single();
+        const { data: newHolding, error: newHoldingError } =
+          await supabase
+            .from("holdings")
+            .insert([newHoldingObj])
+            .select()
+            .single();
+
+        if (newHoldingError) {
+          console.error("Error insertando holding:", newHoldingError);
+          return;
+        }
 
         holdingId = newHolding.id;
       }
 
       await supabase.from("transactions").insert([
         {
+          user_id: userId,
           holding_id: holdingId,
           activo: activoValue,
           fecha,
@@ -334,106 +465,120 @@ export const useHoldings = () => {
           importe,
           cantidad,
           tipo: "compra",
-          asset_type: assetType,
+          asset_type: formData.asset_type,
         },
       ]);
 
       await fetchHoldings();
       await fetchTransactions();
+
       reset();
       setSearchTerm("");
       setSuggestions([]);
       setShowForm(false);
     } catch (err) {
       console.error("Error en onSubmit:", err);
+      alert("Error agregando transacción.");
     }
   };
 
-  // ---------------------------
-  // Balance total
-  // ---------------------------
   const balanceTotalUSD = holdings.reduce(
     (acc, h) => acc + (h.monto_actual || 0),
     0
   );
-// ---------------------------
-// handleSellAsset
-// ---------------------------
-const handleSellAsset = async (symbol: string, cantidadVenta: number) => {
-  try {
-    if (!symbol || !cantidadVenta || cantidadVenta <= 0) return;
 
-    // Obtener holding actual
-    const { data: holding } = await supabase
-      .from("holdings")
-      .select("*")
-      .eq("activo", symbol)
-      .maybeSingle();
+  const handleSellAsset = async (symbol: string, cantidadVenta: number) => {
+    try {
+      if (!symbol || !cantidadVenta || cantidadVenta <= 0) return;
 
-    if (!holding) {
-      console.warn("No existe holding para vender:", symbol);
-      return;
-    }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const cantidadActual = Number(holding.cantidad);
+      if (!user) {
+        alert("Debes iniciar sesión.");
+        return;
+      }
 
-    if (cantidadVenta > cantidadActual) {
-      alert("No podés vender más de lo que tenés.");
-      return;
-    }
-
-    // Precio actual para calcular importe de venta
-    const precio_actual = await fetchCurrentPrice(symbol);
-    const importeVenta = precio_actual ? precio_actual * cantidadVenta : 0;
-
-    // Registrar transacción tipo venta
-    await supabase.from("transactions").insert([
-      {
-        holding_id: holding.id,
-        activo: symbol,
-        fecha: new Date().toISOString().slice(0, 10),
-        precio_compra: precio_actual,
-        importe: importeVenta,
-        cantidad: cantidadVenta,
-        tipo: "venta",
-        asset_type: holding.asset_type,
-      },
-    ]);
-
-    // CASO 1 → Venta total → eliminar holding
-    if (cantidadVenta === cantidadActual) {
-      await supabase.from("holdings").delete().eq("id", holding.id);
-    }
-
-    // CASO 2 → Venta parcial → restar cantidad
-    else {
-      const nuevaCantidad = cantidadActual - cantidadVenta;
-
-      // El total invertido baja proporcional a las unidades vendidas
-      const total_invertido_actual = Number(holding.total_invertido || 0);
-      const total_invertido_nuevo =
-        (nuevaCantidad / cantidadActual) * total_invertido_actual;
-
-      await supabase
+      const { data: holding } = await supabase
         .from("holdings")
-        .update({
-          cantidad: nuevaCantidad,
-          total_invertido: total_invertido_nuevo,
-          precio_compra:
-            nuevaCantidad > 0
-              ? total_invertido_nuevo / nuevaCantidad
-              : holding.precio_compra,
-          precio_actual,
-        })
-        .eq("id", holding.id);
-    }
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("activo", symbol)
+        .maybeSingle();
 
-    await fetchHoldings();
-    await fetchTransactions();
-  } catch (err) {
-    console.error("Error en handleSellAsset:", err);
-  }
-};
+      if (!holding) {
+        console.warn("No existe holding para vender:", symbol);
+        return;
+      }
+
+      const cantidadActual = Number(holding.cantidad);
+
+      if (cantidadVenta > cantidadActual) {
+        alert("No podés vender más de lo que tenés.");
+        return;
+      }
+
+      const precio_actual = await fetchCurrentPrice(symbol);
+      const importeVenta =
+        precio_actual ? precio_actual * cantidadVenta : 0;
+
+      await supabase.from("transactions").insert([
+        {
+          user_id: user.id,
+          holding_id: holding.id,
+          activo: symbol,
+          fecha: new Date().toISOString().slice(0, 10),
+          precio_compra: precio_actual,
+          importe: importeVenta,
+          cantidad: -cantidadVenta,
+          tipo: "venta",
+          asset_type: holding.asset_type,
+        },
+      ]);
+
+      if (cantidadVenta === cantidadActual) {
+        await supabase
+          .from("holdings")
+          .delete()
+          .eq("id", holding.id)
+          .eq("user_id", user.id);
+      } else {
+        const nuevaCantidad = cantidadActual - cantidadVenta;
+
+        const total_invertido_actual = Number(
+          holding.total_invertido || 0
+        );
+        const total_invertido_nuevo =
+          (nuevaCantidad / cantidadActual) *
+          total_invertido_actual;
+
+        await supabase
+          .from("holdings")
+          .update({
+            cantidad: nuevaCantidad,
+            total_invertido: total_invertido_nuevo,
+            precio_compra:
+              nuevaCantidad > 0
+                ? total_invertido_nuevo / nuevaCantidad
+                : holding.precio_compra,
+            precio_actual,
+          })
+          .eq("id", holding.id)
+          .eq("user_id", user.id);
+      }
+
+      await fetchHoldings();
+      await fetchTransactions();
+    } catch (err) {
+      console.error("Error en handleSellAsset:", err);
+    }
+  };
+
+  const handleSuggestionClick = (symbol: string) => {
+    setSearchTerm(symbol);
+    setSuggestions([]);
+  };
 
   const balanceTotalARS = dolarMEP ? balanceTotalUSD * dolarMEP : 0;
 
@@ -457,6 +602,6 @@ const handleSellAsset = async (symbol: string, cantidadVenta: number) => {
     balanceTotalUSD,
     balanceTotalARS,
     dolarMEP,
-    handleSellAsset,   // ← AGREGAR ESTO
+    handleSellAsset,
   };
 };

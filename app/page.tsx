@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HoldingsTable from "./components/HoldingsTable";
 import TransactionForm from "./components/TransactionForm";
 import TransactionHistory from "./components/TransactionHistory";
@@ -8,9 +8,42 @@ import ThemeToggle from "./components/ThemeToggle";
 import { useHoldings } from "./hooks/useHoldings";
 import PortfolioCharts from "./components/PortfolioCharts";
 import ToggleMoneda from "./components/ToggleMoneda";
-
+import { useAuth } from "./components/AuthProvider";
+import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import type { Session } from "@supabase/supabase-js";
 
 export default function Page() {
+  // 🔹 1) TODOS LOS HOOKS VAN ARRIBA
+  const [session, setSession] = useState<Session | null>(null);
+  const [mostrarARS, setMostrarARS] = useState(false);
+  const [user, setUser] = useState<any>(undefined);
+
+  // 🔹 2) Cargar sesión
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // 🔹 3) Cargar usuario
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ?? null);
+    });
+  }, []);
+
+  // 🔹 4) Hooks del sistema (SIEMPRE deben ejecutarse)
   const {
     holdings,
     transactions,
@@ -22,11 +55,50 @@ export default function Page() {
     balanceTotalUSD,
     balanceTotalARS,
     handleSellAsset,
+
+     // 🔹 AGREGAR ESTOS:
+  handleSubmit,
+  register,
+  onSubmit,
+  searchTerm,
+  suggestions,
+  handleSearchChange,
+  handleSuggestionClick,
+  assetType,
+  setAssetType,
   } = useHoldings();
 
- // const totalBalance = holdings.reduce((acc, h) => acc + (h.monto_actual || 0), 0);
-  const [mostrarARS, setMostrarARS] = useState(false);
+  // 🔹 5) AHORA recién podés cortar el render
+  if (!session || user === null) {
+    return (
+      <main className="h-screen flex flex-col items-center justify-center p-6">
+        <h1 className="text-3xl font-bold mb-4">🔐 Iniciar sesión</h1>
 
+        <div className="w-full max-w-sm">
+          <Auth
+            supabaseClient={supabase}
+            appearance={{ theme: ThemeSupa }}
+            providers={["google"]}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: "Email",
+                  password_label: "Contraseña",
+                },
+                sign_up: {
+                  email_label: "Email",
+                  password_label: "Contraseña",
+                },
+              },
+            }}
+          />
+        </div>
+      </main>
+    );
+  }
+
+  // 🔹 6) SI LLEGA HASTA ACA → usuario logueado ✔
+  // (tu app sigue normalmente)
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col items-center p-8 transition-colors">
@@ -83,11 +155,14 @@ export default function Page() {
       {/* Botón debajo del header */}
   <div className="w-full max-w-5xl mb-6">
     <button
-      onClick={() => setShowForm(true)}
-      className="flex items-center gap-2 btn-accent hover:bg-[var(--accent-hover)] px-4 py-2 rounded-lg shadow transition"
-    >
-      <span className="text-xl font-bold">＋</span> Agregar transacción
-    </button>
+  onClick={() => setShowForm(true)}
+  className="flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-sm bg-white/5 hover:bg-white/10 border border-white/10 transition text-sm font-medium"
+>
+  <span className="text-lg">＋</span>
+  Agregar transacción
+</button>
+
+
   </div>
 
       <HoldingsTable
@@ -120,7 +195,20 @@ export default function Page() {
 
 
 
-      <TransactionForm showForm={showForm} setShowForm={setShowForm} />
+      <TransactionForm
+  showForm={showForm}
+  setShowForm={setShowForm}
+  handleSubmit={handleSubmit}
+  register={register}
+  searchTerm={searchTerm}
+  suggestions={suggestions}
+  handleSearchChange={handleSearchChange}
+  handleSuggestionClick={handleSuggestionClick}
+  onSubmit={onSubmit}
+  assetType={assetType}
+  setAssetType={setAssetType}
+/>
+
     </main>
   );
 }

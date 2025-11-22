@@ -1,0 +1,7 @@
+{
+  "tasks": {},
+  "imports": {},
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  }
+}

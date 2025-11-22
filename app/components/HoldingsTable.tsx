@@ -18,70 +18,73 @@ export default function HoldingsTable({
     );
 
   return (
-    <section
-      className="w-full max-w-5xl mb-8 rounded-xl shadow-md overflow-hidden border border-default bg-card animate-fadeIn"
-      style={{
-        backgroundColor: "var(--card)",
-        color: "var(--card-foreground)",
-      }}
-    >
-      <h3 className="text-md font-semibold mb-3 px-4 pt-4">{title}</h3>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr
-            style={{
-              backgroundColor: "var(--muted)",
-              color: "var(--muted-foreground)",
-            }}
-          >
-            <th className="p-2 border border-default">Activo</th>
-            <th className="p-2 border border-default">Cantidad</th>
-            <th className="p-2 border border-default">PPC</th>
-            <th className="p-2 border border-default">PA</th>
-            <th className="p-2 border border-default">G/P USD</th>
-            <th className="p-2 border border-default">G/P %</th>
-            <th className="p-2 border border-default">Invertido</th>
-            <th className="p-2 border border-default">Monto actual</th>
-            <th className="p-2 border border-default text-center">Historial</th>
-          </tr>
-        </thead>
-        <tbody>
-          {holdings.map((h: any) => (
-            <tr key={h.id}>
-              <td className="border border-default p-2 font-medium">{h.activo}</td>
-              <td className="border border-default p-2">{h.cantidad.toFixed(6)}</td>
-              <td className="border border-default p-2">{h.precio_compra.toFixed(2)}</td>
-              <td className="border border-default p-2">{h.precio_actual?.toFixed(2)}</td>
-              <td
-                className="border border-default p-2"
-                style={{
-                  color: h.ganancia_usd >= 0 ? "var(--success)" : "var(--danger)",
-                }}
+    <section className="w-full max-w-5xl mb-8 animate-fadeIn">
+      <h3 className="text-md font-semibold mb-4 px-2">{title}</h3>
+
+      {/* ---------- HEADER CARD ---------- */}
+      <div
+        className="grid grid-cols-9 gap-2 p-3 rounded-xl border bg-card shadow-sm font-semibold text-sm"
+        style={{
+          backgroundColor: "var(--muted)",
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <p>Activo</p>
+        <p>Cantidad</p>
+        <p>PPC</p>
+        <p>PA</p>
+        <p>G/P USD</p>
+        <p>G/P %</p>
+        <p>Invertido</p>
+        <p>Monto actual</p>
+        <p>Historial</p>
+      </div>
+
+      {/* ---------- HOLDINGS LIST ---------- */}
+      <div className="flex flex-col mt-3 gap-3">
+        {holdings.map((h: any) => {
+          const color = h.ganancia_usd >= 0 ? "var(--success)" : "var(--danger)";
+          const expanded = expandedSymbol === h.activo;
+
+          return (
+            <div
+              key={h.id}
+              className="rounded-xl border bg-card shadow-sm p-3 hover:shadow-md transition"
+            >
+              {/* ---------- GRID VALUES ---------- */}
+              <div
+                className="grid grid-cols-9 gap-2 text-sm items-center"
               >
-                {h.ganancia_usd?.toFixed(2)}
-              </td>
-              <td
-                className="border border-default p-2"
-                style={{
-                  color: h.ganancia_pct >= 0 ? "var(--success)" : "var(--danger)",
-                }}
-              >
-                {h.ganancia_pct?.toFixed(2)}%
-              </td>
-              <td className="border border-default p-2">{h.total_invertido?.toFixed(2)}</td>
-              <td className="border border-default p-2">{h.monto_actual?.toFixed(2)}</td>
-              <td className="border border-default p-2 text-center">
+                <p className="font-medium">{h.activo}</p>
+                <p>{h.cantidad.toFixed(6)}</p>
+                <p>{h.precio_compra.toFixed(2)}</p>
+                <p>{h.precio_actual?.toFixed(2)}</p>
+
+                <p style={{ color }}>{h.ganancia_usd?.toFixed(2)}</p>
+                <p style={{ color }}>{h.ganancia_pct?.toFixed(2)}%</p>
+
+                <p>{h.total_invertido?.toFixed(2)}</p>
+                <p>{h.monto_actual?.toFixed(2)}</p>
+
+                {/* ---------- BOTÓN + PARA HISTORIAL ---------- */}
                 <button
                   onClick={() => onExpand(h.activo)}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border hover:bg-muted transition"
                 >
-                  {expandedSymbol === h.activo ? "-" : "+"}
+                  +
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+
+              {/* ---------- EXPANDED AREA ---------- */}
+              {expanded && (
+                <div className="mt-3 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+                  Historial, movimientos o lo que quieras mostrar aquí.
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }

@@ -7,109 +7,118 @@ export default function TransactionHistory({
   expandedSymbol,
   transactions,
   onClose,
-  onSellAsset, // ← NUEVO PROP
+  onSellAsset,
 }: any) {
-  const [selling, setSelling] = useState(false); // popup interno
+  const [selling, setSelling] = useState(false);
   const [cantidad, setCantidad] = useState("");
 
   return (
     <AnimatePresence>
       {expandedSymbol && (
         <>
-          {/* FONDO OSCURO */}
+          {/* Fondo difuminado minimalista */}
           <motion.div
             key="backdrop"
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
 
-          {/* POPUP PRINCIPAL */}
+          {/* Popup principal minimalista */}
           <motion.div
             key="popup"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                       w-full max-w-3xl bg-card border border-default 
-                       rounded-xl shadow-xl p-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.25 }}
+            className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                       w-full max-w-2xl bg-[color:var(--card)]
+                       rounded-2xl shadow-xl p-6 border border-[color:var(--border)]"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                🕒 Historial de transacciones de {expandedSymbol}
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold">
+                Historial — {expandedSymbol}
               </h3>
 
-              {/* BOTÓN CERRAR */}
               <button
                 onClick={onClose}
-                className="text-xl font-bold hover:opacity-70 transition"
+                className="text-lg opacity-60 hover:opacity-100 transition"
               >
                 ✕
               </button>
             </div>
 
-            {/* 🔴 BOTÓN VENDER */}
+            {/* Botón vender minimalista */}
             <button
               onClick={() => setSelling(true)}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg mb-4 shadow"
+              className="w-full py-2 rounded-xl mb-6
+                         bg-red-500/10 text-red-600 border border-red-500/30
+                         hover:bg-red-500/20 transition font-medium"
             >
-              🧾 Vender / Eliminar activo
+              Vender / Eliminar activo
             </button>
 
-            {/* TABLA */}
+            {/* Tabla minimalista */}
             {transactions.length === 0 ? (
-              <p className="text-muted">
-                No hay transacciones registradas para este activo.
-              </p>
+              <p className="text-muted">No hay transacciones registradas.</p>
             ) : (
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: "var(--muted)",
-                      color: "var(--muted-foreground)",
-                    }}
+              <div className="rounded-xl overflow-hidden border border-[color:var(--border)]">
+                <table className="w-full text-sm">
+                  <thead
+                    className="bg-[color:var(--muted)] text-[color:var(--muted-foreground)]"
                   >
-                    <th className="p-2 border border-default">Fecha</th>
-                    <th className="p-2 border border-default">Precio</th>
-                    <th className="p-2 border border-default">Importe</th>
-                    <th className="p-2 border border-default">Cantidad</th>
-                    <th className="p-2 border border-default">Tipo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((t: any, i: number) => (
-                    <tr key={i}>
-                      <td className="border border-default p-2">{t.fecha}</td>
-                      <td className="border border-default p-2">
-                        {t.precio_compra.toFixed(2)}
-                      </td>
-                      <td className="border border-default p-2">
-                        {t.importe.toFixed(2)}
-                      </td>
-                      <td className="border border-default p-2">{t.cantidad}</td>
-                      <td
-                        className="border border-default p-2 capitalize font-semibold"
-                        style={{
-                          color:
-                            t.tipo === "compra"
-                              ? "var(--success)"
-                              : "var(--danger)",
-                        }}
-                      >
-                        {t.tipo}
-                      </td>
+                    <tr>
+                      <th className="p-2 text-left">Fecha</th>
+                      <th className="p-2 text-left">Precio</th>
+                      <th className="p-2 text-left">Importe</th>
+                      <th className="p-2 text-left">Cantidad</th>
+                      <th className="p-2 text-left">Tipo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+                    {transactions.map((t: any, i: number) => (
+                      <tr
+                        key={i}
+                        className="border-t border-[color:var(--border)]"
+                      >
+                        <td className="p-2">{t.fecha}</td>
+
+                        <td className="p-2">
+                          {t.precio_compra.toFixed(2)}
+                        </td>
+
+                        <td className="p-2">
+                          {t.importe.toFixed(2)}
+                        </td>
+
+                        <td className="p-2">
+                          {t.cantidad}
+                        </td>
+
+                        <td
+                          className="p-2 font-medium capitalize"
+                          style={{
+                            color:
+                              t.tipo === "compra"
+                                ? "var(--success)"
+                                : "var(--danger)",
+                          }}
+                        >
+                          {t.tipo}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </motion.div>
 
-          {/* ➕ POP-UP INTERNO: VENDER CANTIDAD */}
+          {/* Popup interno de venta — minimalista */}
           <AnimatePresence>
             {selling && (
               <motion.div
@@ -119,26 +128,29 @@ export default function TransactionHistory({
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="fixed z-[60] top-1/2 left-1/2 
                            -translate-x-1/2 -translate-y-1/2 
-                           bg-card border border-default rounded-lg shadow-xl 
-                           p-6 w-full max-w-sm"
+                           bg-[color:var(--card)] border border-[color:var(--border)]
+                           rounded-xl shadow-xl p-6 w-full max-w-sm"
               >
-                <h3 className="text-lg font-semibold mb-3">
+                <h3 className="text-lg font-semibold mb-4">
                   Vender {expandedSymbol}
                 </h3>
 
-                <label className="block mb-2 font-medium">Cantidad a vender</label>
+                <label className="block text-sm mb-2">Cantidad a vender</label>
                 <input
                   type="number"
                   value={cantidad}
                   onChange={(e) => setCantidad(e.target.value)}
-                  className="w-full p-2 border rounded mb-4 bg-background"
+                  className="w-full p-2 border border-[color:var(--border)]
+                             rounded-lg bg-[color:var(--muted)]
+                             mb-5 text-[color:var(--foreground)]"
                   placeholder="Ej: 2.5"
                 />
 
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setSelling(false)}
-                    className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                    className="px-4 py-2 rounded-lg border border-[color:var(--border)] 
+                               hover:bg-[color:var(--muted)] transition"
                   >
                     Cancelar
                   </button>
@@ -149,7 +161,8 @@ export default function TransactionHistory({
                       setSelling(false);
                       onClose();
                     }}
-                    className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white"
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white
+                               hover:bg-red-700 transition"
                   >
                     Confirmar venta
                   </button>

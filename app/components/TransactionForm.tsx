@@ -1,20 +1,22 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useHoldings } from "../hooks/useHoldings";
+import { useState } from "react";
 
-export default function TransactionForm({ showForm, setShowForm }: any) {
-  const {
-    handleSubmit,
-    register,
-    searchTerm,
-    suggestions,
-    handleSearchChange,
-    handleSuggestionClick,
-    onSubmit,
-    assetType,
-    setAssetType,
-  } = useHoldings();
+export default function TransactionForm({
+  showForm,
+  setShowForm,
+  handleSubmit,
+  register,
+  searchTerm,
+  suggestions,
+  handleSearchChange,
+  handleSuggestionClick,
+  onSubmit,
+  assetType,
+  setAssetType,
+}: any) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
     <AnimatePresence>
@@ -26,7 +28,7 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowForm(false)}
+            onClick={() => !isSubmitting && setShowForm(false)}
           />
 
           {/* Sidebar */}
@@ -43,22 +45,32 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
           >
             {/* Header */}
             <h2 className="text-xl font-semibold mb-4">➕ Nueva transacción</h2>
+
             <button
+              disabled={isSubmitting}
               onClick={() => setShowForm(false)}
-              className="absolute top-4 right-4 text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] text-lg transition"
+              className="absolute top-4 right-4 text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)] text-lg transition disabled:opacity-50"
             >
               ✖
             </button>
 
             {/* Formulario */}
             <form
-              onSubmit={handleSubmit(async (data) => {
-              await onSubmit(data);       // ⬅️ Ejecuta el guardado normal
-              setShowForm(false);         // ⬅️ Cierra la barra lateral automáticamente
+              onSubmit={handleSubmit(async (data: any) => {
+                if (isSubmitting) return; // previene doble click
+                setIsSubmitting(true);
+
+                try {
+                  await onSubmit(data);
+                  setShowForm(false);
+                } catch (err) {
+                  console.error("Error al guardar:", err);
+                } finally {
+                  setIsSubmitting(false);
+                }
               })}
               className="space-y-4"
->
-
+            >
               {/* Tipo de activo */}
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -69,12 +81,14 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
                   onChange={(e) =>
                     setAssetType(e.target.value as "stock" | "crypto")
                   }
-                  className="w-full border rounded p-2 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] transition"
+                  disabled={isSubmitting}
+                  className="w-full border rounded p-2 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] transition disabled:opacity-50"
                 >
                   <option value="stock">Acciones / ETFs</option>
                   <option value="crypto">Criptomonedas</option>
                 </select>
               </div>
+              <input type="hidden" {...register("asset_type")} value={assetType} />
 
               {/* Buscador */}
               <div className="relative">
@@ -83,23 +97,21 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   required
+                  disabled={isSubmitting}
                   placeholder={
                     assetType === "stock"
                       ? "Ej: AAPL, TSLA, SPY..."
                       : "Ej: BTC, ETH..."
                   }
-                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] transition"
+                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] transition disabled:opacity-50"
                 />
 
-                {suggestions.length > 0 && (
+                {suggestions.length > 0 && !isSubmitting && (
                   <ul className="absolute w-full mt-1 rounded border border-[color:var(--border)] shadow z-10 max-h-60 overflow-y-auto bg-[color:var(--card)] text-[color:var(--card-foreground)]">
                     {suggestions.map((s: any, i: number) => (
                       <li
                         key={i}
-                        onClick={() =>
-                          handleSuggestionClick(s.symbol)
-                          
-                        }
+                        onClick={() => handleSuggestionClick(s.symbol)}
                         className="p-2 text-sm cursor-pointer hover:bg-[color:var(--accent)] hover:text-white transition"
                       >
                         {assetType === "stock"
@@ -123,7 +135,8 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
                   step="0.00000001"
                   {...register("precio_compra", { valueAsNumber: true })}
                   required
-                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)]"
+                  disabled={isSubmitting}
+                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] disabled:opacity-50"
                 />
               </div>
 
@@ -135,7 +148,8 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
                   step="0.00000001"
                   {...register("cantidad", { valueAsNumber: true })}
                   required
-                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)]"
+                  disabled={isSubmitting}
+                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] disabled:opacity-50"
                 />
               </div>
 
@@ -146,16 +160,18 @@ export default function TransactionForm({ showForm, setShowForm }: any) {
                   type="date"
                   {...register("fecha")}
                   required
-                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)]"
+                  disabled={isSubmitting}
+                  className="w-full border p-2 rounded mt-1 bg-[color:var(--muted)] text-[color:var(--foreground)] border-[color:var(--border)] disabled:opacity-50"
                 />
               </div>
 
-              {/* Botón guardar */}
+              {/* Botón */}
               <button
                 type="submit"
-                className="w-full py-2 rounded-lg mt-4 font-semibold btn-accent transition"
+                disabled={isSubmitting}
+                className="w-full py-2 rounded-lg mt-4 font-semibold btn-accent transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Guardar transacción
+                {isSubmitting ? "Guardando..." : "Guardar transacción"}
               </button>
             </form>
           </motion.div>
